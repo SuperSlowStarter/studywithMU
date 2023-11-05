@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스터디윗머</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-image: url('23123123120.jpg'); /* 이미지 파일의 경로에 맞게 수정 */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+  }
+  .stopwatch-container {
+    max-width: 600px;
+    margin: 50px auto 0; /* 위에서 100px, 좌우는 자동으로 가운데 정렬 */
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    position: relative;
+}
+  .current-time {
+    font-size: 20px;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+    padding: 3px 10px 3px 10px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 5px;
+  }
+  .time-display {
+    font-size: 120px;
+    margin-bottom: 10px;
+    font-family: Arial, sans-serif;
+  }
+  .buttons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  button {
+    font-size: 16px;
+    padding: 8px 16px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s; /* 호버 효과 추가 */
+  }
+  button:hover {
+    background-color: rgba(200, 200, 200, 0.7); /* 호버 시 배경 색상 조절 */
+  }
+  #study, #rest {
+    width: 100px;
+  }
+  #study.active {
+    background-color: #add8e6; /* 연한 하늘색 */
+  }
+  #rest.active {
+    background-color: #ffb6c1; /* 연한 분홍색 */
+  }
+  #toggle, #reset { 
+    margin-top: 10px;
+    width: 150px; 
+    height: 40px; 
+  }
+  .log-entry {
+    background-color: rgba(173, 216, 230, 0.5); /* 더 투명도가 높은 흐린 하늘색 */
+    border-radius: 10px;
+    padding: 5px 10px;
+    display: block;
+    margin: 2px 0;
+  }
+  .log-entry.study {
+    background-color: rgba(173, 216, 230, 0.5); /* 더 투명도가 높은 흐린 하늘색 */
+  }
+  .log-entry.rest {
+    background-color: rgba(255, 182, 193, 0.5); /* 더 투명도가 높은 흐린 분홍색 */
+  }
+  .alert {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+  <script>
+    alert("Developed by multi23 mugun\nIf you want update, shut up and go study.");
+  </script>
+  <div class="current-time" id="current-time"></div>
+  <div class="stopwatch-container">
+    
+    <div class="time-display">00:00:00</div>
+    <div class="buttons">
+      <button id="study">공부</button>
+      <button id="rest">휴식</button>
+    </div>
+    <div class="buttons">
+      <button id="toggle">시작</button>
+      <button id="reset">초기화</button>
+    </div>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    let startTime;
+    let interval;
+    let isStudying = false;
+    let isResting = false;
+    let studyCount = 0;
+    let restCount = 0;
+    let isRunning = false;
+    const timeDisplay = document.querySelector('.time-display');
+    const logContainer = document.getElementById('log');
+    const toggleButton = document.getElementById('toggle');
+    const studyButton = document.getElementById('study');
+    const restButton = document.getElementById('rest');
+    const currentTimeDisplay = document.getElementById('current-time');
+
+    // 현재 시각 가져오기
+    // 현재 시각 가져오기
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0'); // 시간을 가져오고 두 자리로 포맷팅
+    const minutes = String(now.getMinutes()).padStart(2, '0'); // 분을 가져오고 두 자리로 포맷팅
+    const formattedCurrentTime = `${hours}시 ${minutes}분`; // 시간과 분을 조합하여 표시
+    currentTimeDisplay.textContent = `공부 시작 시간 : ${formattedCurrentTime}`;
+
+
+    function toggleTimer() {
+      if (!isRunning) {
+        if (isStudying || isResting) {
+          startTime = Date.now();
+          interval = setInterval(updateDisplay, 1000);
+          toggleButton.textContent = '종료';
+        }
+      } else {
+        clearInterval(interval);
+        if (startTime !== null) {
+          const duration = Math.floor((Date.now() - startTime) / 1000); // 초 단위로 변환
+          const formattedTime = `${String(Math.floor(duration / 3600)).padStart(2, '0')}:${String(Math.floor((duration % 3600) / 60)).padStart(2, '0')}:${String(duration % 60).padStart(2, '0')}`;
+          const logText = isStudying ? `공부 ${++studyCount}: ` : `휴식 ${++restCount}: `;
+          const logElement = document.createElement('div');
+          logElement.className = `log-entry ${isStudying ? 'study' : 'rest'}`;
+          logElement.textContent = logText + formattedTime;
+          logContainer.appendChild(logElement);
+        }
+        isStudying = false;
+        isResting = false;
+        startTime = null;
+        updateDisplay();
+        toggleButton.textContent = '시작';
+        studyButton.classList.remove('active');
+        restButton.classList.remove('active');
+      }
+      isRunning = !isRunning;
+    }
+
+    function resetTimer() {
+      clearInterval(interval);
+      startTime = null;
+      updateDisplay();
+      logContainer.innerHTML = '';
+      studyCount = 0;
+      restCount = 0;
+      isRunning = false;
+      toggleButton.textContent = '시작';
+      studyButton.classList.remove('active');
+      restButton.classList.remove('active');
+    }
+
+    function updateDisplay() {
+      const currentTime = Date.now();
+      const elapsedTime = startTime ? currentTime - startTime : 0;
+      const formattedTime = `${String(Math.floor(elapsedTime / 3600000)).padStart(2, '0')}:${String(Math.floor((elapsedTime % 3600000) / 60000)).padStart(2, '0')}:${String(Math.floor((elapsedTime % 60000) / 1000)).padStart(2, '0')}`;
+      timeDisplay.textContent = formattedTime;
+    }
+
+    document.getElementById('study').addEventListener('click', () => {
+      isStudying = true;
+      isResting = false;
+      studyButton.classList.add('active');
+      restButton.classList.remove('active');
+      updateDisplay();
+    });
+
+    document.getElementById('rest').addEventListener('click', () => {
+      isStudying = false;
+      isResting = true;
+      restButton.classList.add('active');
+      studyButton.classList.remove('active');
+      updateDisplay();
+    });
+
+    toggleButton.addEventListener('click', toggleTimer);
+
+    document.getElementById('reset').addEventListener('click', resetTimer);
+  </script>
+</body>
+</html>
